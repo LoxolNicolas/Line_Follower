@@ -2,7 +2,7 @@ import serial
 import matplotlib.pyplot as plt
 
 driver = serial.Serial(
-        port = 'COM6',
+        port = 'COM10',
         baudrate = 115200,
         parity = serial.PARITY_NONE,
         stopbits = serial.STOPBITS_ONE,
@@ -41,7 +41,7 @@ while continuer:
                 elif(element[3] == "B"):
                     tabX_ech.append(float(element[0]))
                     tabY_ech.append(float(element[1]))
-                    
+                    print(float(element[2]))
     
     plt.plot(tabX, tabY)
     plt.plot(tabX_ech, tabY_ech, 'x')
