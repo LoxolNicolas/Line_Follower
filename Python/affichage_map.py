@@ -17,6 +17,8 @@ while continuer:
 
     tabX = []
     tabY = []
+    tabX_ech = []
+    tabY_ech = []
 
     buffer_caractere = []
     
@@ -32,11 +34,17 @@ while continuer:
 
                 if(element[0] == "stop"):
                     continuer = False
-                else:
+                    print(int(element[1]))
+                elif(element[3] == "A"):
                     tabX.append(float(element[0]))
                     tabY.append(float(element[1]))
+                elif(element[3] == "B"):
+                    tabX_ech.append(float(element[0]))
+                    tabY_ech.append(float(element[1]))
+                    
     
     plt.plot(tabX, tabY)
+    plt.plot(tabX_ech, tabY_ech, 'x')
     plt.xlabel("x en cm")
     plt.ylabel("y en cm")
     plt.axis("equal") #Repere orthonorme
