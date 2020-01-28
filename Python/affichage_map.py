@@ -32,13 +32,14 @@ while continuer:
                 buffer_caractere = []  # la ligne est remise à zéro pour recevoir une nouvelle ligne
                 element = strl.split(" ")  # on crée un tableau contenant les différentes informations de la ligne
 
+                print(element)
+
                 if(element[0] == "stop"):
                     continuer = False
-                    print(int(element[1]))
-                elif(element[3] == "A"):
+                elif( len(element) >= 4 and element[3] == "A"):
                     tabX.append(float(element[0]))
                     tabY.append(float(element[1]))
-                elif(element[3] == "B"):
+                elif( len(element) >= 4 and element[3] == "B"):
                     tabX_ech.append(float(element[0]))
                     tabY_ech.append(float(element[1]))
                     print(float(element[2]))
