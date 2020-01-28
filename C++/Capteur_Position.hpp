@@ -64,8 +64,9 @@
 #define INCH 2.54
 #define NOMBRE_MESURE 2000
 #define DISTANCE_ECHANTILLONAGE 1.0 //Correspond au deplacement d'un cm
-#define PI 3.14159265358979323846
-#define DISTANCE_CENTRE_CAPTEUR 15.666
+#define DEGRE_ECHANTILLONAGE 1.0f
+#define PI 3.14159265358979323846f
+#define DISTANCE_CENTRE_CAPTEUR 15.666f
 
 #define TO_DEGREE(x) ((x) * (180/PI)) 
 
@@ -75,7 +76,6 @@ Serial pc(USBTX, USBRX); // TX / RX
 Serial bt(D1, D0); //MODULE bluetooth
 
 Timer timer;
-Timer depart_robot;
 
 struct Coordonnee
 {
@@ -90,8 +90,9 @@ volatile int16_t xydat[2]; //Valeur de X et Y
 volatile char movementFlag = 0;
 char testctr = 0;
 double distance1 = 0.0;
-bool fin_circuit = false;
+float theta_1 = 0.0;
 int numero_coordonnee = 1;
+int nb_mesure = 0;
 
 Coordonnee tab_cord[NOMBRE_MESURE] = {0}; 
 

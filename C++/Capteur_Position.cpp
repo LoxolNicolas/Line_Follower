@@ -1,5 +1,5 @@
 #include "mbed.h"
-#include "Capteur_Position.hpp"
+#include "SROM_0x04.hpp"
 
 void spi_com_begin()
 {
@@ -126,8 +126,10 @@ void performStartup(void)
     //pc.printf("Optical Chip Initialized\r\n");
 }
 
-void UpdatePointer(Coordonnee* prec, Coordonnee* act)
+int UpdatePointer(Coordonnee* prec, Coordonnee* act)
 {
+    int valeur = 0;
+    
     if(initComplete == 9) 
     {
         //write 0x01 to Motion register and read from it to freeze the motion values and make them available
@@ -159,35 +161,39 @@ void UpdatePointer(Coordonnee* prec, Coordonnee* act)
         //act->x = prec->x + x_cm; //REPERE EN ABSOLU
         //act->y = prec->y - y_cm; //REPERE EN ABSOLU
         act->distance = prec->distance + sqrt(pow(x_cm, 2) + pow(-y_cm, 2));
-        act->theta = prec->theta + (360.0 / (2 * PI * DISTANCE_CENTRE_CAPTEUR)) * x_cm;
-        act->x -= y_cm * sin((act->theta) / 360.0 * 2 * PI); //REPERE DU ROBOT
-        act->y -= y_cm * cos((act->theta) / 360.0 * 2 * PI); //REPERE DU ROBOT
+        
+        act->theta = prec->theta + ((360.0f / (2.0f * PI * DISTANCE_CENTRE_CAPTEUR)) * x_cm / 2);
+        
+        act->x -= y_cm * sin((act->theta) / 360.0f * 2.0f * PI); //REPERE DU ROBOT
+        act->y -= y_cm * cos((act->theta) / 360.0f * 2.0f * PI); //REPERE DU ROBOT
+                
+        act->theta = act->theta + ((360.0f / (2.0f * PI * DISTANCE_CENTRE_CAPTEUR)) * x_cm / 2);
         
         distance1 = distance1 + sqrt(pow(act->x - prec->x, 2) + pow(act->y - prec->y, 2));
-   
-        if(distance1 > DISTANCE_ECHANTILLONAGE && numero_coordonnee < NOMBRE_MESURE)
-        {       
-                tab_cord[numero_coordonnee].x = act->x;
-                tab_cord[numero_coordonnee].y = act->y;
-                tab_cord[numero_coordonnee].theta = act->theta;
-                tab_cord[numero_coordonnee].distance = act->distance;
+        theta_1 = theta_1 + (360.0f / (2.0f * PI * DISTANCE_CENTRE_CAPTEUR)) * x_cm;
+        
+        if(theta_1 > DEGRE_ECHANTILLONAGE && numero_coordonnee < NOMBRE_MESURE)
+        {
+            valeur = 1;
+            
+            tab_cord[numero_coordonnee].x = act->x;
+            tab_cord[numero_coordonnee].y = act->y;
+            tab_cord[numero_coordonnee].theta = act->theta;
+            tab_cord[numero_coordonnee].distance = act->distance;
                 
-                pc.printf("Coordonee : %d ---> X : %f | Y : %f | D : %f | T : %f | A : %f\r\n", numero_coordonnee, tab_cord[numero_coordonnee].x, tab_cord[numero_coordonnee].y, tab_cord[numero_coordonnee].distance, timer.read(), tab_cord[numero_coordonnee].theta);
+            //pc.printf("Coordonee : %d ---> X : %f | Y : %f | D : %f | T : %f | A : %f\r\n", numero_coordonnee, tab_cord[numero_coordonnee].x, tab_cord[numero_coordonnee].y, tab_cord[numero_coordonnee].distance, timer.read(), tab_cord[numero_coordonnee].theta);
                 
-                numero_coordonnee++;
+            numero_coordonnee++;
                 
-                distance1 -= DISTANCE_ECHANTILLONAGE;
+            theta_1 -= DEGRE_ECHANTILLONAGE;
         }
         
-        if(depart_robot.read() > 30.0)
-        {
-            fin_circuit = true;   
-        }
-    
         movementFlag = 1;
 
         spi_write_reg(Motion, 0x00);
     }
+    
+    return valeur;
 }
 
 void setup()
@@ -205,31 +211,40 @@ void setup()
     initComplete=9;
 }
 
-
 int main()
 {
     setup();
+    
+    int indice = 1;
     
     Coordonnee prec = {0.0, 0.0, 0.0, 0.0};
     
     Coordonnee act = {0.0, 0.0, 0.0, 0.0};
 
     timer.start();
-    depart_robot.start();
     
     tab_cord[0].x = 0;
     tab_cord[0].y = 0;
     tab_cord[0].theta = 0;
     tab_cord[0].distance = 0;
     
-    bt.printf("%f %f %f\n", act.x, act.y, act.theta);
-    
-    while(!(fin_circuit))
+    bt.printf("%f %f %f\n", act.x, act.y, act.distance);
+        
+    while(act.distance < 1000.0f)
     { 
-        UpdatePointer(&prec, &act);
+        int type = UpdatePointer(&prec, &act);
         
-        bt.printf("%f %f %f\n", act.x, act.y, act.theta);
+        if(type == 0)
+        {
+            bt.printf("%f %f %f A\n", act.x, act.y, act.distance);
+        }
         
+        if(type == 1)
+        {
+            bt.printf("%f %f %f B\n", tab_cord[indice].x, tab_cord[indice].y, tab_cord[indice].distance);
+            indice++;
+        }
+                
         prec = act;
 
         wait_ms(1);
@@ -238,7 +253,6 @@ int main()
     bt.printf("stop\n");
     
     timer.stop();
-    depart_robot.stop();
     
     return 0;
 }
