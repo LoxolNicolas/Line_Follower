@@ -153,7 +153,7 @@ void i2c() {
 					pc.printf("writen speed: %f\n", vitesse);
 				break;
 				case 1:
-
+					// TODO changer les infos renvoyées par la distance avant le prochain point et la prochaine courbure
 					i2cslave.write((char *) tab_cord , sizeof(tab_cord[0]));
 					pc.printf("writen map info\n");
 				break;

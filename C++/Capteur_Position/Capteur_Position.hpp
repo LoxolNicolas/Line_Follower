@@ -1,4 +1,4 @@
-#include "mbed-os/mbed.h"
+#include "../mbed-os/mbed.h"
 
 // Registers
 #define Product_ID  0x00
