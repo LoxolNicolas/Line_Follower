@@ -1,3 +1,0 @@
-[submodule "C++/line_follower"]
-	path = C++/line_follower
-	url = git@isilabs.fr:tnr19/line_follower.git
