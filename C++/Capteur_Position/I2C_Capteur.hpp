@@ -8,6 +8,7 @@ const int SLAVE_ADDRESS = 0xA0; //SLAVE ADRESS
 
 extern char i2cInfoRequested;
 
+void i2cSetup(); 
 void i2c();
  
 #endif
