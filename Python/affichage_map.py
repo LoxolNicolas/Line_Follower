@@ -1,5 +1,6 @@
 import serial
 import matplotlib.pyplot as plt
+import numpy as np
 
 driver = serial.Serial(
         port = 'COM10',
@@ -20,6 +21,7 @@ while continuer:
     tabY = []
     tabX_ech = []
     tabY_ech = []
+    tab_courbure = []
 
     buffer_caractere = []
     
@@ -35,12 +37,13 @@ while continuer:
 
                 if(element[0] == "stop"):
                     continuer = False
-                elif(len(element) >= 4 and element[3] == "C" or len(element) >= 4 and element[3] == "D"):
+                elif(len(element) >= 5 and element[3] == "C" or len(element) >= 5 and element[4] == "D"):
                     tabX.append(float(element[0]))
                     tabY.append(float(element[1]))
-                    if(element[3] == "D"):
+                    if(element[4] == "D"):
                         tabX_ech.append(float(element[0]))
                         tabY_ech.append(float(element[1]))
+                        tab_courbure.append(float(element[3]))
 
     
     plt.plot(tabX, tabY)
@@ -50,6 +53,8 @@ while continuer:
     plt.axis("equal") #Repere orthonorme
     plt.title("Carte du circuit parcourue par le robot")
     plt.show()
+    
+    np.savetxt("courbure.txt")
         
 print("serial close")
 

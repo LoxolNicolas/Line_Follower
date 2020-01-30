@@ -19,6 +19,7 @@ struct Coordonnee
     float y;
     float theta;
     float distance;
+    float courbure;
 };
 
 extern char initComplete;
@@ -36,5 +37,8 @@ extern Coordonnee tab_cord[];
 
 void setup();
 int UpdatePointer(Coordonnee* prec, Coordonnee* act);
+float mini();
+float maxi();
+int RangeVitesse(float vitesse);
 
 #endif

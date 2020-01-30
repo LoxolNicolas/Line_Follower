@@ -12,7 +12,7 @@ char initComplete = 0;
 volatile char movementFlag = 0;
 float theta_1 = 0.0;
 int numero_coordonnee = 1;
-float vitesse = 0;
+float vitesse = 0.0f;
 volatile int16_t xydat[2]; //Valeur de X et Y
 
 void setup()
@@ -73,7 +73,7 @@ int UpdatePointer(Coordonnee* prec, Coordonnee* act)
 
 		theta_1 = theta_1 + (360.0f / (2.0f * PI * DISTANCE_CENTRE_CAPTEUR)) * abs(x_cm);
 
-		if(theta_1 > DEGRE_ECHANTILLONAGE && numero_coordonnee < NOMBRE_MESURE)
+		if(theta_1 > DEGRE_ECHANTILLONAGE && numero_coordonnee < NOMBRE_MESURE) //TO DO AVEC COURBURE
 		{
 			valeur = 1;
 
@@ -81,6 +81,7 @@ int UpdatePointer(Coordonnee* prec, Coordonnee* act)
 			tab_cord[numero_coordonnee].y = act->y;
 			tab_cord[numero_coordonnee].theta = act->theta;
 			tab_cord[numero_coordonnee].distance = act->distance;
+			tab_cord[numero_coordonnee].courbure = (360.0f / (2.0f * PI * DISTANCE_CENTRE_CAPTEUR) * x_cm) / y_cm;
 
 			numero_coordonnee++;
 
@@ -93,4 +94,39 @@ int UpdatePointer(Coordonnee* prec, Coordonnee* act)
 	}
 
 	return valeur;
+}
+
+float mini(float tabvitesse[], int taille)
+{
+	float minimum = tabvitesse[0];
+	
+	for(int i = 1; i < taille; i++)
+	{
+		if(minimum > tabvitesse[i])
+		{
+			minimum = tabvitesse[i];	
+		}	
+	}
+	
+	return minimum;
+}
+
+float maxi(float tabvitesse[], int taille)
+{
+	float maximum = tabvitesse[0];
+	
+	for(int i = 1; i < taille; i++)
+	{
+		if(maximum < tabvitesse[i])
+		{
+			maximum = tabvitesse[i];	
+		}	
+	}
+	
+	return maximum;
+}
+
+int RangeVitesse(float vitesse, float vitesse_min, float vitesse_max)
+{
+	//return round(((vitesse_max - vitesse_min) / 127.0) * vitesse); //ROUND PAS DEFINI
 }

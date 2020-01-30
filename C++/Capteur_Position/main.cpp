@@ -4,20 +4,22 @@
 int main()
 {
     setup();
+    i2cSetup();
 
     vitesseTimer.start();
     mesureTimer.start();
 
     int indice = 1;
 
-    Coordonnee prec = {0.0, 0.0, 0.0, 0.0};
+    Coordonnee prec = {0.0, 0.0, 0.0, 0.0, 0.0};
 
-    Coordonnee act = {0.0, 0.0, 0.0, 0.0};
+    Coordonnee act = {0.0, 0.0, 0.0, 0.0, 0.0};
 
     tab_cord[0].x = 0;
     tab_cord[0].y = 0;
     tab_cord[0].theta = 0;
     tab_cord[0].distance = 0;
+    tab_cord[0].courbure = 0;
 
 
     bt.printf("%f %f %f\n", act.x, act.y, act.distance);
@@ -29,12 +31,12 @@ int main()
 
             if(type == 0)
             {
-                bt.printf("%f %f %f C\n", act.x, act.y, act.distance);
+                //bt.printf("%f %f %f C\n", act.x, act.y, act.distance);
             }
 
             if(type == 1)
             {
-                bt.printf("%f %f %f D\n", tab_cord[indice].x, tab_cord[indice].y, tab_cord[indice].distance);
+                //bt.printf("%f %f %f %f D\n", tab_cord[indice].x, tab_cord[indice].y, tab_cord[indice].distance, tab_cord[indice].courbure);
                 indice++;
             }
 
