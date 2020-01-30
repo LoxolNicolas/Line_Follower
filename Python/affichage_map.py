@@ -12,6 +12,7 @@ driver = serial.Serial(
 print("connexion a: " + driver.portstr)
 
 continuer = True
+distance_circuit = 0.0
 
 while continuer:
 
@@ -32,17 +33,15 @@ while continuer:
                 buffer_caractere = []  # la ligne est remise à zéro pour recevoir une nouvelle ligne
                 element = strl.split(" ")  # on crée un tableau contenant les différentes informations de la ligne
 
-                print(element)
-
                 if(element[0] == "stop"):
                     continuer = False
-                elif( len(element) >= 4 and element[3] == "A"):
+                elif(len(element) >= 4 and element[3] == "C" or len(element) >= 4 and element[3] == "D"):
                     tabX.append(float(element[0]))
                     tabY.append(float(element[1]))
-                elif( len(element) >= 4 and element[3] == "B"):
-                    tabX_ech.append(float(element[0]))
-                    tabY_ech.append(float(element[1]))
-                    print(float(element[2]))
+                    if(element[3] == "D"):
+                        tabX_ech.append(float(element[0]))
+                        tabY_ech.append(float(element[1]))
+
     
     plt.plot(tabX, tabY)
     plt.plot(tabX_ech, tabY_ech, 'x')
