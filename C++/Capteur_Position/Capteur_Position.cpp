@@ -7,13 +7,15 @@ Coordonnee tab_cord[NOMBRE_MESURE] = {0};
 Serial pc(USBTX, USBRX);
 Serial bt(D1, D0); //MODULE bluetooth
 Timer mesureTimer;
-Timer vitesseTimer;
 char initComplete = 0;
 volatile char movementFlag = 0;
-float theta_1 = 0.0;
+float theta_1 = 0.0f;
 int numero_coordonnee = 1;
-float vitesse = 0.0f;
 volatile int16_t xydat[2]; //Valeur de X et Y
+
+Timer vitesseTimer;
+float vitesse = 0.0f;
+float currentAngle = 0.0f;
 
 void setup()
 {
@@ -69,6 +71,8 @@ int UpdatePointer(Coordonnee* prec, Coordonnee* act)
 		act->y -= y_cm * cos((act->theta) / 360.0f * 2.0f * PI); //REPERE DU ROBOT
 
 		act->theta = act->theta + ((360.0f / (2.0f * PI * DISTANCE_CENTRE_CAPTEUR)) * x_cm / 2);
+
+		currentAngle = act->theta;
 
 		theta_1 = theta_1 + (360.0f / (2.0f * PI * DISTANCE_CENTRE_CAPTEUR)) * abs(x_cm);
 

@@ -15,11 +15,11 @@ extern Serial bt; //MODULE bluetooth
 
 struct Coordonnee
 {
-    float x;
-    float y;
-    float theta;
-    float distance;
-    float courbure;
+	float x;
+	float y;
+	float theta;
+	float distance;
+	float courbure;
 };
 
 extern char initComplete;
@@ -32,6 +32,7 @@ extern Timer mesureTimer;
 
 extern Timer vitesseTimer;
 extern float vitesse;
+extern float currentAngle;
 
 extern Coordonnee tab_cord[];
 
