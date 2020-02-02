@@ -1,18 +1,20 @@
 #include "SPI_Capteur.hpp"
 #include "Config_capteur.hpp"
 
+extern Serial pc;
+
 SPI spi(D11, D12, D13); // MOSI, MISO, SCLK
 DigitalOut ss(A3); //SS
 
 void spi_com_begin()
 {
-    spi.lock();
+    //spi.lock();
     ss = 0; //NCS Non Chip Select
 }
 
 void spi_com_end()
 {
-    spi.unlock();
+    //spi.unlock();
     ss = 1; //NCS Non Chip Select
 }
 
@@ -58,7 +60,7 @@ void performStartup(void)
     spi_com_begin(); // ensure that the serial port is reset
     spi_com_end(); // ensure that the serial port is reset
     spi_write_reg(Power_Up_Reset, 0x5a); // force reset
-    wait_ms(50); // wait for it to reboot
+    wait_us(1000 * 50); // wait for it to reboot
     // read registers 0x02 to 0x06 (and discard the data)
     spi_read_reg(Motion);
     spi_read_reg(Delta_X_L);

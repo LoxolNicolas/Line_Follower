@@ -22,7 +22,6 @@ void setup()
 
 	spi.frequency(1000000); // 2MHz maximum frequency
 	spi.format(8, 3); // SPI mode 3
-
 	performStartup();
 
 	initComplete = 9;
@@ -56,12 +55,12 @@ int UpdatePointer(Coordonnee* prec, Coordonnee* act)
 		float x_cm = (xydat[0] / RESOLUTION_CAPTEUR) * INCH_TO_CM;
 		float y_cm = (xydat[1] / RESOLUTION_CAPTEUR) * INCH_TO_CM;
 
-		vitesse = y_cm / vitesseTimer.read();
+		vitesse = -y_cm / vitesseTimer.read();
 		vitesseTimer.reset();
 
 		//act->x = prec->x + x_cm; //REPERE EN ABSOLU
 		//act->y = prec->y - y_cm; //REPERE EN ABSOLU
-		
+
 		act->distance = prec->distance + abs(y_cm);
 
 		act->theta = prec->theta + ((360.0f / (2.0f * PI * DISTANCE_CENTRE_CAPTEUR)) * x_cm / 2);
@@ -99,34 +98,35 @@ int UpdatePointer(Coordonnee* prec, Coordonnee* act)
 float mini(float tabvitesse[], int taille)
 {
 	float minimum = tabvitesse[0];
-	
+
 	for(int i = 1; i < taille; i++)
 	{
 		if(minimum > tabvitesse[i])
 		{
-			minimum = tabvitesse[i];	
-		}	
+			minimum = tabvitesse[i];
+		}
 	}
-	
+
 	return minimum;
 }
 
 float maxi(float tabvitesse[], int taille)
 {
 	float maximum = tabvitesse[0];
-	
+
 	for(int i = 1; i < taille; i++)
 	{
 		if(maximum < tabvitesse[i])
 		{
-			maximum = tabvitesse[i];	
-		}	
+			maximum = tabvitesse[i];
+		}
 	}
-	
+
 	return maximum;
 }
 
 int RangeVitesse(float vitesse, float vitesse_min, float vitesse_max)
 {
 	//return round(((vitesse_max - vitesse_min) / 127.0) * vitesse); //ROUND PAS DEFINI
+	return 0;
 }
