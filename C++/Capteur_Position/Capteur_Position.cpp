@@ -2,8 +2,10 @@
 #include "Capteur_Position.hpp"
 #include "SPI_Capteur.hpp"
 #include "Config_capteur.hpp"
+#include "I2C_Capteur.hpp"
 
 Coordonnee tab_cord[NOMBRE_MESURE] = {0};
+Data_I2C tab_I2C[NOMBRE_MESURE_I2C] = {0};
 Serial pc(USBTX, USBRX);
 Serial bt(D1, D0); //MODULE bluetooth
 Timer mesureTimer;
@@ -11,6 +13,7 @@ char initComplete = 0;
 volatile char movementFlag = 0;
 float theta_1 = 0.0f;
 int numero_coordonnee = 1;
+int numero_i2c = 1;
 volatile int16_t xydat[2]; //Valeur de X et Y
 
 Timer vitesseTimer;
@@ -25,6 +28,8 @@ void setup()
 	spi.frequency(1000000); // 2MHz maximum frequency
 	spi.format(8, 3); // SPI mode 3
 	performStartup();
+	
+	i2cSetup();
 
 	initComplete = 9;
 }
@@ -62,16 +67,16 @@ int UpdatePointer(Coordonnee* prec, Coordonnee* act)
 
 		//act->x = prec->x + x_cm; //REPERE EN ABSOLU
 		//act->y = prec->y - y_cm; //REPERE EN ABSOLU
-
+			
 		act->distance = prec->distance + abs(y_cm);
 
 		act->theta = prec->theta + ((360.0f / (2.0f * PI * DISTANCE_CENTRE_CAPTEUR)) * x_cm / 2);
 
 		act->x -= y_cm * sin((act->theta) / 360.0f * 2.0f * PI); //REPERE DU ROBOT
 		act->y -= y_cm * cos((act->theta) / 360.0f * 2.0f * PI); //REPERE DU ROBOT
-
+		
 		act->theta = act->theta + ((360.0f / (2.0f * PI * DISTANCE_CENTRE_CAPTEUR)) * x_cm / 2);
-
+		
 		currentAngle = act->theta;
 
 		theta_1 = theta_1 + (360.0f / (2.0f * PI * DISTANCE_CENTRE_CAPTEUR)) * abs(x_cm);

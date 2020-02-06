@@ -54,6 +54,63 @@ void spi_write_reg(char reg_addr, char data)
     wait_us(100); // tSWW/tSWR (=120us) minus tSCLK-NCS. Could be shortened, but is looks like a safe lower bound
 }
 
+void spi_upload_firmware()
+{
+    // send the firmware to the chip, cf p.18 of the datasheet
+    //pc.printf("Uploading firmware...\r\n");
+
+    //Write 0 to Rest_En bit of Config2 register to disable Rest mode.
+    spi_write_reg(Config2, 0x00);
+
+    // write 0x1d in SROM_enable reg for initializing
+    spi_write_reg(SROM_Enable, 0x1d);
+
+    // wait for more than one frame period
+    wait_ms(10); // assume that the frame rate is as low as 100fps... even if it should never be that low
+
+    // write 0x18 to SROM_enable to start SROM download
+    spi_write_reg(SROM_Enable, 0x18);
+
+    spi_com_begin();
+
+    // write the SROM file (=firmware data)
+    spi.write(SROM_Load_Burst | 0b10000000); // write burst destination adress
+    wait_us(15);
+
+    // send all chars of the firmware
+    unsigned char c;
+    
+    for(uint16_t i = 0; i < firmware_length; i++) 
+    {
+        c = firmware_data[i];
+        spi.write(c);
+        wait_us(15);
+    }
+
+    spi_com_end();
+    wait_us(160);
+
+    // perform SROM CRC test
+    spi_write_reg(SROM_Enable, 0x15); // start CRC test
+    wait_ms(10);
+    int16_t crc = 0;
+    crc |= (spi_read_reg(Data_Out_Upper) & 0xFF);
+    crc = crc << 8;
+    crc |= (spi_read_reg(Data_Out_Lower) & 0xFF);
+    //pc.printf("CRC Check: %04X\r\n", crc);
+
+
+    //Read the SROM_ID register to verify the ID before any other register reads or writes.
+    char result = spi_read_reg(SROM_ID);
+    //printf("SROM_ID: %02X\r\n", result);
+
+    //Write 0x00 to Config2 register for wired mouse or 0x20 for wireless mouse design.
+    spi_write_reg(Config2, 0x00);
+
+    // set initial CPI resolution
+    spi_write_reg(Config1, 0x77); //RESOLUTION A 12000 CPI
+}
+
 void performStartup(void)
 {
     spi_com_end(); // ensure that the serial port is reset
@@ -68,5 +125,7 @@ void performStartup(void)
     spi_read_reg(Delta_Y_L);
     spi_read_reg(Delta_Y_H);
     // upload the firmware
-
+    
+    spi_upload_firmware();
+    wait_ms(10);
 }

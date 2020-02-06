@@ -4,8 +4,7 @@
 int main()
 {
     setup();
-    i2cSetup();
-
+    
     vitesseTimer.start();
     mesureTimer.start();
 
@@ -14,19 +13,22 @@ int main()
     Coordonnee prec = {0.0, 0.0, 0.0, 0.0, 0.0};
 
     Coordonnee act = {0.0, 0.0, 0.0, 0.0, 0.0};
-
+    
     tab_cord[0].x = 0;
     tab_cord[0].y = 0;
     tab_cord[0].theta = 0;
     tab_cord[0].distance = 0;
     tab_cord[0].courbure = 0;
 
-
+    tab_I2C[0].courbure_discret = 0; 
+    tab_I2C[0].distance = 0.0;
+    
     bt.printf("%f %f %f\n", act.x, act.y, act.distance);
 
-    while(act.distance < 1000.0f)
+    while(act.distance < 1000.0f) // FAIRE AVEC BOOLEAN LIGNE ARRIVE
     {
-        if(mesureTimer.read_ms() > 1) {
+        if(mesureTimer.read_ms() > 1) //Le robot tourne a 1000Hz
+        {
             int type = UpdatePointer(&prec, &act);
 
             if(type == 0)
