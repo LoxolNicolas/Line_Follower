@@ -20,6 +20,8 @@ Timer vitesseTimer;
 float vitesse = 0.0f;
 float currentAngle = 0.0f;
 
+float oldCourbure = 0;
+
 void setup()
 {
 	pc.baud(115200);
@@ -80,8 +82,11 @@ int UpdatePointer(Coordonnee* prec, Coordonnee* act)
 		currentAngle = act->theta;
 
 		theta_1 = theta_1 + (360.0f / (2.0f * PI * DISTANCE_CENTRE_CAPTEUR)) * abs(x_cm);
-
-		if(theta_1 > DEGRE_ECHANTILLONAGE && numero_coordonnee < NOMBRE_MESURE) //TO DO AVEC COURBURE
+		
+		act->courbure = (360.0f / (2.0f * PI * DISTANCE_CENTRE_CAPTEUR) * x_cm) / y_cm;
+		
+		
+		if(abs(act->courbure - oldCourbure) > DEGRE_ECHANTILLONAGE && numero_coordonnee < NOMBRE_MESURE && y_cm != 0.0) //TO DO AVEC COURBURE
 		{
 			valeur = 1;
 
@@ -93,7 +98,9 @@ int UpdatePointer(Coordonnee* prec, Coordonnee* act)
 
 			numero_coordonnee++;
 
-			theta_1 -= DEGRE_ECHANTILLONAGE;
+			//theta_1 -= DEGRE_ECHANTILLONAGE;
+			
+			oldCourbure = act->courbure;
 		}
 
 		movementFlag = 1;
@@ -120,7 +127,7 @@ float mini(float tabvitesse[], int taille)
 }
 
 float maxi(float tabvitesse[], int taille)
-{
+{	
 	float maximum = tabvitesse[0];
 
 	for(int i = 1; i < taille; i++)
