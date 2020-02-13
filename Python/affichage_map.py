@@ -25,6 +25,7 @@ while continuer:
 
     buffer_caractere = []
     
+    
     while continuer:
         if(driver.in_waiting > 0):  # si des caractères ont été recus
             caractere = driver.read().decode("ascii")  # on decode le caractère
@@ -37,10 +38,11 @@ while continuer:
 
                 if(element[0] == "stop"):
                     continuer = False
+                    print("stop")
                 elif(len(element) == 3 and element[2] == "C" or len(element) >= 4 and element[3] == "D"):
                     tabX.append(float(element[0]))
                     tabY.append(float(element[1]))
-                    if(element[4] == "D"):
+                    if(len(element) >= 4 and element[3] == "D"):
                         tabX_ech.append(float(element[0]))
                         tabY_ech.append(float(element[1]))
                         tab_courbure.append(float(element[2]))
