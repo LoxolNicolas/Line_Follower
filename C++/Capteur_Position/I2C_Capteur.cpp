@@ -17,7 +17,7 @@ void i2c()
 	{
 		case I2CSlave::ReadAddressed: //MASTER IS READING AT THE SLAVE ADRESS
 		{
-			bt.printf("read\n");
+			//bt.printf("read\n");
 			switch(i2cInfoRequested)
 			{
 				case 0: // SPEED selected
@@ -42,7 +42,7 @@ void i2c()
 
 		case I2CSlave::WriteAddressed: //MASTER IS WRITING TO THE SLAVE ADRESS
 		{
-			bt.printf("write\n");
+			//bt.printf("write\n");
 			i2cslave.read(&i2cInfoRequested, 1);
 
 			break;
