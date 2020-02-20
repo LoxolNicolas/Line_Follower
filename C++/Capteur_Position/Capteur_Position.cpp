@@ -13,14 +13,20 @@ char initComplete = 0;
 volatile char movementFlag = 0;
 float theta_1 = 0.0f;
 int numero_coordonnee = 1;
+int indice = 1;
 int numero_i2c = 1;
 volatile int16_t xydat[2]; //Valeur de X et Y
+float pas_courbure = 0.0f;
+int nb_tour_circuit = 1;
 
 Timer vitesseTimer;
 float vitesse = 0.0f;
 float currentAngle = 0.0f;
 
 float oldCourbure = 0;
+
+float distance_act = 0.0f;
+char courbure_act = 0;
 
 void setup()
 {
@@ -36,7 +42,7 @@ void setup()
 	initComplete = 9;
 }
 
-int UpdatePointer(Coordonnee* prec, Coordonnee* act)
+int UpdatePointer(Coordonnee* prec, Coordonnee* act, float* distance_act)
 {
 	int valeur = 0;
 
@@ -71,7 +77,7 @@ int UpdatePointer(Coordonnee* prec, Coordonnee* act)
 		//act->y = prec->y - y_cm; //REPERE EN ABSOLU
 			
 		act->distance = prec->distance + abs(y_cm);
-
+		
 		act->theta = prec->theta + ((360.0f / (2.0f * PI * DISTANCE_CENTRE_CAPTEUR)) * x_cm / 2);
 
 		act->x -= y_cm * sin((act->theta) / 360.0f * 2.0f * PI); //REPERE DU ROBOT
@@ -85,8 +91,9 @@ int UpdatePointer(Coordonnee* prec, Coordonnee* act)
 		
 		act->courbure = (360.0f / (2.0f * PI * DISTANCE_CENTRE_CAPTEUR) * x_cm) / y_cm;
 		
+		*distance_act = act->distance;
 		
-		if(abs(act->courbure - oldCourbure) > DEGRE_ECHANTILLONAGE && numero_coordonnee < NOMBRE_MESURE && y_cm != 0.0) //TO DO AVEC COURBURE
+		if(abs(act->courbure - oldCourbure) > DEGRE_ECHANTILLONAGE && numero_coordonnee < NOMBRE_MESURE && y_cm != 0.0f)
 		{
 			valeur = 1;
 
@@ -98,7 +105,7 @@ int UpdatePointer(Coordonnee* prec, Coordonnee* act)
 
 			numero_coordonnee++;
 
-			//theta_1 -= DEGRE_ECHANTILLONAGE;
+			//theta_1 -= DEGRE_ECHANTILLONAGE; //Lorsque les point sont echantillones selon l'angle 
 			
 			oldCourbure = act->courbure;
 		}
@@ -111,38 +118,79 @@ int UpdatePointer(Coordonnee* prec, Coordonnee* act)
 	return valeur;
 }
 
-float mini(float tabvitesse[], int taille)
+float mini(Coordonnee tab[], int taille)
 {
-	float minimum = tabvitesse[0];
+	float minimum = tab[0].courbure;
 
 	for(int i = 1; i < taille; i++)
 	{
-		if(minimum > tabvitesse[i])
+		if(minimum > tab[i].courbure)
 		{
-			minimum = tabvitesse[i];
+			minimum = tab[i].courbure;
 		}
 	}
 
 	return minimum;
 }
 
-float maxi(float tabvitesse[], int taille)
+float maxi(Coordonnee tab[], int taille)
 {	
-	float maximum = tabvitesse[0];
+	float maximum = tab[0].courbure;
 
 	for(int i = 1; i < taille; i++)
 	{
-		if(maximum < tabvitesse[i])
+		if(maximum < tab[i].courbure)
 		{
-			maximum = tabvitesse[i];
+			maximum = tab[i].courbure;
 		}
 	}
 
 	return maximum;
 }
 
-int RangeVitesse(float vitesse, float vitesse_min, float vitesse_max)
+int round(float valeur)
 {
-	//return round(((vitesse_max - vitesse_min) / 127.0) * vitesse); //ROUND PAS DEFINI
-	return 0;
+	int entier_inf = (int)valeur;
+	
+	int retour = entier_inf;
+	
+	if(valeur - entier_inf >= 0.5f)
+	{
+		retour = entier_inf + 1;
+	}
+	
+	return retour;
+}
+
+unsigned char Courbure_To_Char(float courbure)
+{
+	float courbureMax = mini(tab_cord, indice);
+	float courbureMin = maxi(tab_cord, indice);
+	
+	pas_courbure = (courbureMax - courbureMin) / 256;
+	
+	return round((pas_courbure) * courbure);
+}
+
+void remplir_tab_I2C(Data_I2C tab_I2C[], Coordonnee tab_cord[], int taille)
+{
+	for(int i = 0; i < taille; i++)
+	{
+		tab_I2C[i].courbure_discret = Courbure_To_Char(tab_cord[i].courbure);
+		tab_I2C[i].distance_avant_next_point = tab_cord[i].distance;
+	}	
+}
+
+void next_info_I2C(Data_I2C tab_I2C[], float* distance_act, char* courbure_act, int* indice_tableau_act)
+{
+	for(int i = (*indice_tableau_act); i < indice; i++)
+	{
+		if(tab_I2C[i].distance_avant_next_point >= (*distance_act))
+		{
+			*distance_act = tab_I2C[i].distance_avant_next_point - (*distance_act);
+			*courbure_act = tab_I2C[i].courbure_discret;
+			
+			*indice_tableau_act = i;
+		}	
+	}	
 }
