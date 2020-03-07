@@ -7,12 +7,15 @@
 #define INCH_TO_CM 2.54
 #define NOMBRE_MESURE 1000
 #define NOMBRE_MESURE_I2C 2000
-#define DEGRE_ECHANTILLONAGE 0.4f
+#define DEGRE_ECHANTILLONAGE 1.5f
 #define PI 3.14159265358979323846f
 #define DISTANCE_CENTRE_CAPTEUR 15.666f
 
 extern Serial pc; // TX / RX
 extern Serial bt; //MODULE bluetooth
+
+
+extern Timer mesureTimer;
 
 struct Coordonnee
 {
@@ -53,11 +56,14 @@ extern Data_I2C tab_I2C[];
 extern float distance_act;
 extern char courbure_act;
 
+extern float courbure_moyenne;
+constexpr float courbure_moyenne_new_coef = 0.5f;
+
 void setup();
-int UpdatePointer(Coordonnee* prec, Coordonnee* act, float* distance_act = NULL);
+int UpdatePointer(Coordonnee* prec, Coordonnee* act, float* distance_act = nullptr);
 float mini();
 float maxi();
-int round(float valeur);
+int arrondi(float valeur);
 unsigned char Courbure_To_Char(float courbure);
 void remplir_tab_I2C(Data_I2C tab_I2C[], Coordonnee tab_cord[], int taille);
 void next_info_I2C(Data_I2C tab_I2C[], float* distance_act, char* courbure_act, int* indice_tableau_act);

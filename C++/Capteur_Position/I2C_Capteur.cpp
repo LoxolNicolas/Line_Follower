@@ -12,7 +12,6 @@ void i2cSetup()
 void i2c()
 {
 	int operation = i2cslave.receive(); //IF THE SLAVE HAS BEEN ADRESSED
-
 	switch(operation)
 	{
 		case I2CSlave::ReadAddressed: //MASTER IS READING AT THE SLAVE ADRESS
@@ -51,5 +50,6 @@ void i2c()
 		default:
 			break;
 	}
+
 }
 
