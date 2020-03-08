@@ -66,7 +66,7 @@ void spi_upload_firmware()
     spi_write_reg(SROM_Enable, 0x1d);
 
     // wait for more than one frame period
-    wait_ms(10); // assume that the frame rate is as low as 100fps... even if it should never be that low
+    wait_us(1000*10); // assume that the frame rate is as low as 100fps... even if it should never be that low
 
     // write 0x18 to SROM_enable to start SROM download
     spi_write_reg(SROM_Enable, 0x18);
@@ -79,10 +79,10 @@ void spi_upload_firmware()
 
     // send all chars of the firmware
     unsigned char c;
-    
-    for(uint16_t i = 0; i < firmware_length; i++) 
+
+    for(uint16_t i = 0; i < firmware2_length; i++)
     {
-        c = firmware_data[i];
+        c = firmware2_data[i];
         spi.write(c);
         wait_us(15);
     }
@@ -92,7 +92,7 @@ void spi_upload_firmware()
 
     // perform SROM CRC test
     spi_write_reg(SROM_Enable, 0x15); // start CRC test
-    wait_ms(10);
+    wait_us(1000*10);
     int16_t crc = 0;
     crc |= (spi_read_reg(Data_Out_Upper) & 0xFF);
     crc = crc << 8;
@@ -102,13 +102,14 @@ void spi_upload_firmware()
 
     //Read the SROM_ID register to verify the ID before any other register reads or writes.
     char result = spi_read_reg(SROM_ID);
-    //printf("SROM_ID: %02X\r\n", result);
+    pc.printf("SROM_ID: %02X\r\n", result);
 
     //Write 0x00 to Config2 register for wired mouse or 0x20 for wireless mouse design.
     spi_write_reg(Config2, 0x00);
 
     // set initial CPI resolution
-    spi_write_reg(Config1, 0x77); //RESOLUTION A 12000 CPI
+    //spi_write_reg(Config1, 0x77); //RESOLUTION A 12000 CPI
+    spi_write_reg(Config1, 0x31); //RESOLUTION A 5000 CPI
 }
 
 void performStartup(void)
@@ -125,7 +126,7 @@ void performStartup(void)
     spi_read_reg(Delta_Y_L);
     spi_read_reg(Delta_Y_H);
     // upload the firmware
-    
+
     spi_upload_firmware();
-    wait_ms(10);
+    wait_us(1000*10);
 }

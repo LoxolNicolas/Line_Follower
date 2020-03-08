@@ -61,8 +61,16 @@ class App(QMainWindow):
         button.setToolTip('This s an example button')
         button.move(1180,0)
         button.resize(100,100)
+        button.clicked.connect(self.click)
 
         self.show()
+        
+    def click(self):
+        self.m.tabX = []
+        self.m.tabY = []
+        self.m.tabX_ech = []
+        self.m.tabY_ech = []
+        self.m.tab_courbure = []
     
     def loop(self):
         if(ser.in_waiting > 0):

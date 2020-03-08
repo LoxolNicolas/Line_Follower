@@ -53,78 +53,82 @@ int UpdatePointer(Coordonnee* prec, Coordonnee* act, float* distance_act)
 	{
 		//write 0x01 to Motion register and read from it to freeze the motion values and make them available
 		//spi_write_reg(Motion, 0x01); //DO NOT WRITE NOW writting clear the x, y registers and MOT bit. Data written is not saved, write dummy sata
-		spi_read_reg(Motion); // Freeze Delta_X_L, Delta_X_H, Delta_Y_L, Delta_Y_H, and the MOT bit registers
 
-		unsigned char tmp[4];
-
-		for(char i = 0; i < 4; i++)
-		{
-			tmp[i] = (unsigned char) spi_read_reg(Delta_X_L + i);
-		}
-
-		xydat[0] = tmp[1]; // High bits from Delta_X
-		xydat[0] = xydat[0] << 8;
-		xydat[0] |= tmp[0]; // Low bits from Delta_X
-
-		xydat[1] = tmp[3]; // High bits from Delta_X
-		xydat[1] = xydat[1] << 8;
-		xydat[1] |= tmp[2]; // Low bits from Delta_X
-
-		float x_cm = (xydat[0] / RESOLUTION_CAPTEUR) * INCH_TO_CM;
-		float y_cm = (xydat[1] / RESOLUTION_CAPTEUR) * INCH_TO_CM;
-
-		vitesse = -y_cm / vitesseTimer.read();
-		vitesseTimer.reset();
-
-		//act->x = prec->x + x_cm; //REPERE EN ABSOLU
-		//act->y = prec->y - y_cm; //REPERE EN ABSOLU
-
-		act->distance = prec->distance + abs(y_cm);
-
-		act->theta = prec->theta + ((360.0f / (2.0f * PI * DISTANCE_CENTRE_CAPTEUR)) * x_cm / 2);
-
-		act->x -= y_cm * sin((act->theta) / 360.0f * 2.0f * PI); //REPERE DU ROBOT
-		act->y -= y_cm * cos((act->theta) / 360.0f * 2.0f * PI); //REPERE DU ROBOT
-
-		act->theta = act->theta + ((360.0f / (2.0f * PI * DISTANCE_CENTRE_CAPTEUR)) * x_cm / 2);
-
-		currentAngle = act->theta;
-
-		theta_1 = theta_1 + (360.0f / (2.0f * PI * DISTANCE_CENTRE_CAPTEUR)) * abs(x_cm);
-
-		if(abs(y_cm) > 0.000000001f) {
-			act->courbure = (360.0f / (2.0f * PI * DISTANCE_CENTRE_CAPTEUR) * x_cm) / y_cm;
-			courbure_moyenne = courbure_moyenne * (1.0f - courbure_moyenne_new_coef) + courbure_moyenne_new_coef * act->courbure;
-			int cd = static_cast<int>(courbure_moyenne / DEGRE_ECHANTILLONAGE);
-			pc.printf("fc: %f c: %d oc: %d\n",courbure_moyenne, cd , oldCourbure);
-
-			if( cd != oldCourbure)
-			{
-				valeur = 1;
-
-				tab_cord[numero_coordonnee].x = act->x;
-				tab_cord[numero_coordonnee].y = act->y;
-				tab_cord[numero_coordonnee].theta = act->theta;
-				tab_cord[numero_coordonnee].distance = act->distance;
-				tab_cord[numero_coordonnee].courbure = act->courbure;
-
-				numero_coordonnee++;
-
-				//theta_1 -= DEGRE_ECHANTILLONAGE; //Lorsque les point sont echantillones selon l'angle
-
-				pc.printf("aaaaaaaaaaaaa\n");
-				oldCourbure = cd;
-			}
-		}
-
-		if(distance_act != nullptr)
-			*distance_act = act->distance;
-
-
-
-		movementFlag = 1;
 
 		spi_write_reg(Motion, 0x00);
+		char motion = spi_read_reg(Motion); // Freeze Delta_X_L, Delta_X_H, Delta_Y_L, Delta_Y_H, and the MOT bit registers
+
+		if((motion >> 7) & 0x01) { // if there was a movement
+			unsigned char tmp[4];
+
+			for(char i = 0; i < 4; i++)
+			{
+				tmp[i] = (unsigned char) spi_read_reg(Delta_X_L + i);
+			}
+
+			xydat[0] = tmp[1]; // High bits from Delta_X
+			xydat[0] = xydat[0] << 8;
+			xydat[0] |= tmp[0]; // Low bits from Delta_X
+
+			xydat[1] = tmp[3]; // High bits from Delta_X
+			xydat[1] = xydat[1] << 8;
+			xydat[1] |= tmp[2]; // Low bits from Delta_X
+
+			float x_cm = ((float) xydat[0] / RESOLUTION_CAPTEUR) * INCH_TO_CM;
+			float y_cm = ((float) xydat[1] / RESOLUTION_CAPTEUR) * INCH_TO_CM;
+
+			vitesse = -y_cm / vitesseTimer.read();
+			vitesseTimer.reset();
+
+			//act->x = prec->x + x_cm; //REPERE EN ABSOLU
+			//act->y = prec->y - y_cm; //REPERE EN ABSOLU
+
+			act->distance = prec->distance + abs(y_cm);
+
+			act->theta = prec->theta + ((360.0f / (2.0f * PI * DISTANCE_CENTRE_CAPTEUR)) * x_cm / 2);
+
+			act->x -= y_cm * sin((act->theta) / 360.0f * 2.0f * PI); //REPERE DU ROBOT
+			act->y -= y_cm * cos((act->theta) / 360.0f * 2.0f * PI); //REPERE DU ROBOT
+
+			act->theta = act->theta + ((360.0f / (2.0f * PI * DISTANCE_CENTRE_CAPTEUR)) * x_cm / 2);
+
+			currentAngle = act->theta;
+
+			theta_1 = theta_1 + (360.0f / (2.0f * PI * DISTANCE_CENTRE_CAPTEUR)) * abs(x_cm);
+
+			if(abs(y_cm) > 0.00001f) {
+				act->courbure = (360.0f / (2.0f * PI * DISTANCE_CENTRE_CAPTEUR) * x_cm) / y_cm;
+				courbure_moyenne = courbure_moyenne * (1.0f - courbure_moyenne_new_coef) + courbure_moyenne_new_coef * act->courbure;
+				int cd = static_cast<int>(courbure_moyenne / DEGRE_ECHANTILLONAGE);
+				char sq = spi_read_reg(SQUAL);
+				pc.printf("fc: %f c: %d oc: %d, squal: %x\n",courbure_moyenne, cd , oldCourbure, sq);
+
+				if( cd != oldCourbure)
+				{
+					valeur = 1;
+
+					tab_cord[numero_coordonnee].x = act->x;
+					tab_cord[numero_coordonnee].y = act->y;
+					tab_cord[numero_coordonnee].theta = act->theta;
+					tab_cord[numero_coordonnee].distance = act->distance;
+					tab_cord[numero_coordonnee].courbure = act->courbure;
+
+					numero_coordonnee++;
+
+					//theta_1 -= DEGRE_ECHANTILLONAGE; //Lorsque les point sont echantillones selon l'angle
+
+					oldCourbure = cd;
+				}
+			}
+
+			if(distance_act != nullptr)
+				*distance_act = act->distance;
+
+
+
+			movementFlag = 1;
+
+		}
 	}
 
 	return valeur;
